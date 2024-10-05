@@ -7,10 +7,12 @@ alphabet = string.ascii_lowercase + " "
 
 # Create a random substitution for the alphabet (this is just an example key)
 # In practice, you would choose a permutation of the alphabet randomly or use a predefined one.
-mono_substitution_key = "qwertyuiopasdfghjklzxcvbnm "
+mono_substitution_key = "qwertyuiopasdfghjklznmxcvb "
+mono_substitution_key_2 = "iopasdfghjklznmxcvbqwertyu "
 poly_key="mykey"
 # Create dictionaries for encryption
 mono_encryption_dict = {original: substitute for original, substitute in zip(alphabet, mono_substitution_key)}
+mono_encryption_dict_2 = {original: substitute for original, substitute in zip(alphabet, mono_substitution_key_2)}
 
 
 # Create a dictionary to map 'a' to 'z' to 1 through 26, and add space (' ') mapped to 27
@@ -18,6 +20,9 @@ letter_to_number = {letter: index for index, letter in enumerate(string.ascii_lo
 letter_to_number[' '] = 27  # Manually add the space character mapped to 27
 number_to_letter = {index: letter for index, letter in enumerate(string.ascii_lowercase + ' ', start=1)}
 
+letter_to_number_nospace = {letter: index for index, letter in enumerate(string.ascii_lowercase, start=1)}
+
+number_to_letter_nospace = {index: letter for index, letter in enumerate(string.ascii_lowercase + ' ', start=1)}
 
 def load_plaintext(filename):
     with open(filename, 'r') as file:
@@ -59,6 +64,31 @@ def poly_encrypt(message,poly_key,letter_to_number,number_to_letter):
             i=0
     return encrypted_message
 
+def poly_encrypt_nospace(message,poly_key,letter_to_number_nospace,number_to_letter_nospace):
+    encrypted_message=""
+    i=0
+
+    for char in message:
+        if char==" ":
+            encrypted_message += " "
+            i += 1
+            if i >= len(poly_key):
+                i = 0
+            continue
+
+        index=(int(letter_to_number_nospace.get(char))+int(letter_to_number_nospace.get(poly_key[i])))%26
+        if index==0:
+            encrypted_message+="a"
+            i += 1
+            if i >= len(poly_key):
+                i = 0
+            continue
+        encrypted_message += number_to_letter_nospace[index]
+        i+=1
+        if i>=len(poly_key):
+            i=0
+    return encrypted_message
+
 
 def random_change_10_percent(input_string):
     """Randomly change 10% of the characters in the input string."""
@@ -91,7 +121,7 @@ if __name__ == "__main__":
 
     #randomly choose a plaintext
     choice=random.randint(1,5)
-    choice=3
+    choice=1
     plain_choice="plaintext_"+str(choice)+".txt"
     print(plain_choice)
 
@@ -102,11 +132,17 @@ if __name__ == "__main__":
     mono_cyphertext=mono_encrypt(plaintext_decided,mono_encryption_dict)
     print(mono_cyphertext)
 
+    mono_cyphertext = mono_encrypt(plaintext_decided, mono_encryption_dict_2)
+    print(mono_cyphertext)
+
     poly_cyphertext=poly_encrypt(plaintext_decided,poly_key,letter_to_number,number_to_letter)
     print(poly_cyphertext)
 
-    randomized=random_change_10_percent(plaintext_decided)
-    print(randomized)
+    poly_cyphertext_nospace = poly_encrypt_nospace(plaintext_decided, poly_key, letter_to_number_nospace, number_to_letter_nospace)
+    print(poly_cyphertext_nospace)
+    #
+    # randomized=random_change_10_percent(plaintext_decided)
+    # print(randomized)
 
 
 
