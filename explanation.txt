@@ -1,0 +1,18 @@
+The excute program is final_decrpt.py
+
+First, we judge whether we use mono or poly to encrypt the plaintext. We use the function "identify_cipher_type". 
+The index of Coincidence (IC)(some formula based on distribution percentage) in English is around 0.61, as mono substitution changes every letter together, the answer should be close to that bar. In contrast, poly substitution gets a low score, at around 0.04 or even lower. In the program, I choose 0.05 as a bar.
+
+For Mono substitution, we map the frequency of ciphertext to the frequency of five plaintexts. Then, find the answer in the dictionary. The situation with space should be the same.
+
+For Poly substitution, we do a key length search, which means we try different lengths of key lengths and do brute attacks one by one to find the plaintext. 
+
+Note that the program itself can't give you the final answer now. But you can see the plaintext in the list of plaintext guesses.
+
+Also, use the encrypt_test.py to test. There are five functions here, two for mono(with and without space), two for poly(with and without space), one for random shift(not exactly random, but I think it is fine to use)
+
+To make the program more convenient, I split the dictionary into five files separately and read from them. If you think it is not proper, you can do some work to change it. (I will ask our professor in the next lecture)
+
+After some tests, I found that the plaintext after decrypting is not 100% the same as the original plaintext, a few alphabets may be different.(That's the reason why I can not get it directly from dic in the last step) That leaves space to random.
+
+I will also attach some of the tests on GitHub
