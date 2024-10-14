@@ -163,25 +163,23 @@ def final_judge(decrpytedtext,plaintexts):
     #Mono final_judge, the key idea is to compare the plaintext and the decypted text, 
     #and then find the most similar one. This is applied because of randomized
     counts=[]
-    count=0
     for i in range(5):
+        count = 0
         plaintext = plaintexts[i]
- 
         for j in range(len(decrpytedtext)):
             if plaintext[j]==decrpytedtext[j]:
                 count+=1
         #print(count)
         counts.append(count)
-        count=0
     index=counts.index(max(counts))
     return plaintexts[index]
     
 
 def poly_final_judge(decrpted_collection,plaintexts):
     #Final judge for poly, key idea is similar to the mono part
-    counts = []
-    count = 0
+    counts = []    
     for i in range(5):
+        count = 0
         plaintext = plaintexts[i]
         #open every plaintexts
         for j in range(8):
@@ -191,7 +189,6 @@ def poly_final_judge(decrpted_collection,plaintexts):
                     count += 1
                 #compare every alphabets
             counts.append(count)
-            count = 0
     index = counts.index(max(counts))
     #Get the index of the most similar one, here divided by 8 because there 
     #is 8 different kinds of key lengths
