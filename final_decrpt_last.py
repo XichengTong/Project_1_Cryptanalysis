@@ -230,12 +230,12 @@ def main():
     if cipher_type == "mono-alphabetic substitution cipher":
         result = mono_decrpt(ciphertext, all_plaintexts)
         final_result = final_judge(result)
-        print(final_result)
+        print("My plaintext guess is:",final_result)
     elif cipher_type == "poly-alphabetic substitution cipher":
         result = poly_decrpt(ciphertext, all_plaintexts)
-        print(result)
+        #print("My plaintext guess is:",result)
         final_result = poly_final_judge(result)
-        print(final_result)
+        print("My plaintext guess is:",final_result)
     else:
         result = "Unknown cipher type"
 
