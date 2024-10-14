@@ -1,23 +1,35 @@
 import os
 import string
 from collections import Counter
+import re
 
-def load_all_plaintexts():
-    #this function loads all the plaintext from five files
-    file_names = ['plaintext_1.txt', 'plaintext_2.txt', 'plaintext_3.txt', 'plaintext_4.txt', 'plaintext_5.txt']
+def load_plaintext(file_path):
+    with open(file_path, 'r') as file:
+        # Read the entire content of the file
+        file_content = file.read()
+
+        # Split the content into sections based on "Candidate Plaintext"
     plaintexts = []
-    for file_name in file_names:
-        try:
-            with open(file_name, 'r') as file:
-                content = file.read().strip()
-                if content:
-                    plaintexts.append(content)
-                else:
-                    print(f"Warning: {file_name} is empty.")
-        except FileNotFoundError:
-            print(f"Error: {file_name} not found.")
-    
+    sections = file_content.split("Candidate Plaintext")
+
+    # Extract the first five plaintexts
+    for i in range(1, 6):
+        plaintext = sections[i].strip()
+        new_plaintext=remove_first_pattern(plaintext)
+        plaintexts.append(new_plaintext)
+
     return plaintexts
+
+
+def remove_first_pattern(text):
+    # Define the pattern to match '#1' followed by two newlines
+    pattern = r"#[1-5]\n\n"
+
+    # Use re.sub to replace only the first occurrence of this pattern
+    modified_text = re.sub(pattern, '', text, count=1)
+
+    return modified_text
+
 
 
 def load_local_percentage(text):
@@ -48,7 +60,7 @@ def calculate_index_of_coincidence(text):
 def identify_cipher_type(ciphertext):
     #use the above function to judge the encrypt function, the bar 0.05 is chosen by myself
     ic = calculate_index_of_coincidence(ciphertext)
-    print(f"Index of Coincidence (IC) for the ciphertext: {ic:.4f}")
+    #print(f"Index of Coincidence (IC) for the ciphertext: {ic:.4f}")
     mono_ic_threshold = 0.05
     if ic >= mono_ic_threshold:
         return "mono-alphabetic substitution cipher"
@@ -82,7 +94,7 @@ def mono_decrpt(ciphertext, plaintexts):
     #the main decrpt function when it is mono_decrpt
     cipher_freq = frequency_analysis(ciphertext)
     sorted_cipher_letters = sorted(cipher_freq, key=cipher_freq.get, reverse=True)
-    print("Sorted cipher letters by frequency:", sorted_cipher_letters)
+    #print("Sorted cipher letters by frequency:", sorted_cipher_letters)
     
     best_score = 0
     best_decryption = "Decryption failed"
@@ -90,16 +102,16 @@ def mono_decrpt(ciphertext, plaintexts):
     for i, plaintext in enumerate(plaintexts, start=1):
         percentage_dict = load_local_percentage(plaintext)
         sorted_plaintext_letters = sorted(percentage_dict, key=percentage_dict.get, reverse=True)
-        print(f"Plaintext {i} sorted by frequency:", sorted_plaintext_letters)
+        #print(f"Plaintext {i} sorted by frequency:", sorted_plaintext_letters)
 
         cipher_to_plain_mapping = {cipher_letter: plain_letter for cipher_letter, plain_letter in zip(sorted_cipher_letters, sorted_plaintext_letters)}
-        print(f"Cipher to Plain mapping for Plaintext {i}: {cipher_to_plain_mapping}")
+        #print(f"Cipher to Plain mapping for Plaintext {i}: {cipher_to_plain_mapping}")
 
         decrypted_text = decrypt_monoalphabetic_cipher(ciphertext, cipher_to_plain_mapping)
-        print(f"Decrypted text using Plaintext {i}: {decrypted_text}")
+        #print(f"Decrypted text using Plaintext {i}: {decrypted_text}")
         
         score = score_decryption(decrypted_text, plaintext)
-        print(f"Score for Plaintext {i}: {score}")
+        #print(f"Score for Plaintext {i}: {score}")
 
         if score > best_score:
             best_score = score
@@ -173,32 +185,30 @@ def decrypt_with_key_length(ciphertext, dictionary, key_length, frequency_get):
 
 
 
-def final_judge(decrpytedtext):
+def final_judge(decrpytedtext,plaintexts):
     #mono final_judge, the key idea is to compare the plaintext and the decypted text, and then find the most similar one
     #this is applied because of randomized
     counts=[]
     count=0
-    for i in range(1, 6):
-        with open(f"plaintext_{i}.txt", 'r') as file:
-            plaintext = file.read().strip()
+    for i in range(5):
+        plaintext = plaintexts[i]
+        #print(plaintext)
         for j in range(len(decrpytedtext)):
             if plaintext[j]==decrpytedtext[j]:
                 count+=1
-        print(count)
+        #print(count)
         counts.append(count)
         count=0
     index=counts.index(max(counts))
-    with open(f"plaintext_{index+1}.txt", 'r') as file:
-        plaintext = file.read().strip()
-        return plaintext
+    plaintext = plaintexts[index]
+    return plaintext
 
-def poly_final_judge(decrpted_collection):
+def poly_final_judge(decrpted_collection,plaintexts):
     #final judge for poly, key idea is similar to the mono part
     counts = []
     count = 0
-    for i in range(1,6):
-        with open(f"plaintext_{i}.txt", 'r') as file:
-            plaintext = file.read().strip()
+    for i in range(5):
+        plaintext = plaintexts[i]
         #open every plaintexts
         for j in range(8):
             #go over every key lengths
@@ -211,16 +221,16 @@ def poly_final_judge(decrpted_collection):
     index = counts.index(max(counts))
     #get the index of the most similar one, here divided by 8 because there is 8 different kinds of key lengths
     true_index=index//8
-    with open(f"plaintext_{true_index+1}.txt", 'r') as file:
-        plaintext = file.read().strip()
-        return plaintext
+
+    plaintext = plaintexts[true_index]
+    return plaintext
 
 
 def main():
 
     ciphertext = input("Enter the ciphertext: ").strip()
 
-    all_plaintexts = load_all_plaintexts()
+    all_plaintexts = load_plaintext("s24_dictionary1.txt")
     if not all_plaintexts:
         print("No plaintexts loaded. Exiting.")
         return
@@ -229,15 +239,14 @@ def main():
 
     if cipher_type == "mono-alphabetic substitution cipher":
         result = mono_decrpt(ciphertext, all_plaintexts)
-        final_result = final_judge(result)
-        print("My plaintext guess is:",final_result)
+        final_result = final_judge(result,all_plaintexts)
+        print("My plaintext guess is:"+final_result)
     elif cipher_type == "poly-alphabetic substitution cipher":
         result = poly_decrpt(ciphertext, all_plaintexts)
         #print("My plaintext guess is:",result)
-        final_result = poly_final_judge(result)
-        print("My plaintext guess is:",final_result)
-    else:
-        result = "Unknown cipher type"
+        final_result = poly_final_judge(result,all_plaintexts)
+        print("My plaintext guess is:"+final_result)
+
 
 
 
